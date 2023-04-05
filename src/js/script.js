@@ -5,11 +5,14 @@
   const select = {
     bookTemplate: '#template-book',
     booksList: '.books-list',
+    formInput: '.filters',
   };
 
   const templates = {
     books: Handlebars.compile(document.querySelector(select.bookTemplate).innerHTML),
   };
+
+  const filters = [];
 
   class BooksList {
     constructor(){
@@ -17,13 +20,14 @@
 
       thisBookList.getElements();
       thisBookList.render(dataSource);
-      thisBookList.favouritefilter();
+      thisBookList.initActions();
     }
 
     getElements(){
       const thisBookList = this;
 
       thisBookList.booksContainer = document.querySelector(select.booksList);
+      thisBookList.booksForm = document.querySelector(select.formInput);
 
     }
 
@@ -45,16 +49,21 @@
       });
     }
     /* Function to add books to favourite */
-    favouritefilter(){
+    initActions(){
       const thisBookList = this;
       const favoriteBooks = [];
 
+      // Prevent the default behavior of single click on <a> tag
+      thisBookList.booksContainer.addEventListener('click', function(event) {
+        event.preventDefault();
+      });
+
+      // Adding books to favourite by double click
       thisBookList.booksContainer.addEventListener('dblclick', function(event){
         event.preventDefault();
 
         // return parent element of the element that triggered the event.target and get it data-id attribute
         const bookId = event.target.offsetParent.getAttribute('data-id');
-
 
         if (!favoriteBooks.includes(bookId)){
           // add parent element class favorite
@@ -66,9 +75,49 @@
           favoriteBooks.pop(bookId);
         }
 
-        console.log(favoriteBooks);
+        //console.log(favoriteBooks);
+      });
+
+      thisBookList.booksForm.addEventListener('click', function(event){
+        //event.preventDefault();
+
+        const filter = event.target;
+        // create const to know if checkbox is checked to return true/false
+        const checked = filter.checked;
+
+        if(filter.tagName === 'INPUT' && filter.type === 'checkbox' && filter.name == 'filter'){
+          //console.log(filter.value);
+          if(checked){
+            filters.push(filter.value);
+          } else {
+            filters.pop(filter.value);
+          }
+        }
+        //console.log(filters);
+        thisBookList.filterBooks();
       });
     }
+
+    filterBooks(){
+      for(let book of dataSource.books){
+        let shouldBeHidden = false;
+
+        const selectedBook = document.querySelector('.book__image[data-id="' + book.id + '"]');
+
+        for(const filter of filters){
+          if(!book.details[filter]){
+            shouldBeHidden = true;
+            break;
+          }
+        }
+        if(shouldBeHidden == true){
+          selectedBook.classList.add('hidden');
+        } else {
+          selectedBook.classList.remove('hidden');
+        }
+      }
+    }
+
 
   }
 

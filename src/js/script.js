@@ -18,9 +18,14 @@
     constructor(){
       const thisBookList = this;
 
+      thisBookList.initData();
+      thisBookList.render();
       thisBookList.getElements();
-      thisBookList.render(dataSource);
       thisBookList.initActions();
+    }
+
+    initData(){
+      this.data = dataSource.books;
     }
 
     getElements(){
@@ -31,22 +36,27 @@
 
     }
 
-    render(dataSource){
+    render(){
     /* FUNCTION TO RENDER BOOKS AT PAGE */
       const thisBookList = this;
 
-      dataSource.books.forEach(bookData => {
+      for(let book of this.data){
+
+        const ratingBgc = thisBookList.determinateRatingBgc(book.rating);
+        const ratingWidth = 10 * ratingBgc;
+        book.ratingBgc = ratingBgc;
+        book.ratingWidth = ratingWidth;
 
         // Generate HTML based on HandleBars Template
-        const generatedHTML = templates.books(bookData);
+        const generatedHTML = templates.books(book);
 
-        // Create bookElement using utils.createElementFromHTML
-        const bookElement = utils.createDOMFromHTML(generatedHTML);
+        // Create DOM using utils.createElementFromHTML
+        const generatedDOM = utils.createDOMFromHTML(generatedHTML);
 
         // Adding element to list .books-list
-        thisBookList.booksContainer.appendChild(bookElement);
-
-      });
+        const booksContainer = document.querySelector(select.booksList);
+        booksContainer.appendChild(generatedDOM);
+      }
     }
     /* Function to add books to favourite */
     initActions(){
@@ -100,16 +110,20 @@
 
     filterBooks(){
       for(let book of dataSource.books){
+        // Create variable that default is false
         let shouldBeHidden = false;
 
+        // Create const to find element book
         const selectedBook = document.querySelector('.book__image[data-id="' + book.id + '"]');
 
+        // Create Loop to check if book detail contain fiter
         for(const filter of filters){
           if(!book.details[filter]){
             shouldBeHidden = true;
             break;
           }
         }
+        // Adding / removing class "hidden" based on shouldBeHidden status
         if(shouldBeHidden == true){
           selectedBook.classList.add('hidden');
         } else {
@@ -118,6 +132,23 @@
       }
     }
 
+    determinateRatingBgc(rating){
+      const thisBookList = this;
+
+      thisBookList.ratingBgc = '';
+      // Adding style based on rating
+      if(rating < 6){
+        thisBookList.ratingBgc = 'linear-gradient(to bottom,  #fefcea 0%, #f1da36 100%)';
+      }else if(rating > 6 && rating <= 8){
+        thisBookList.ratingBgc = 'linear-gradient(to bottom, #b4df5b 0%,#b4df5b 100%)';
+      }else if(rating > 8 && rating <= 9){
+        thisBookList.ratingBgc = 'linear-gradient(to bottom, #299a0b 0%, #299a0b 100%)';
+      }else if(rating > 9){
+        thisBookList.ratingBgc = 'linear-gradient(to bottom, #ff0084 0%,#ff0084 100%)';
+      }
+
+      return thisBookList.ratingBgc;
+    }
 
   }
 
